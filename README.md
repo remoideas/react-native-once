@@ -75,7 +75,6 @@ Sets the value of the key:
 Once.set("onboarding-intro", value);
 ```
 
-##### Run
 Runs a method based on the value of the key. The forth parameter is to denote if the key should automatically be toggled (default true). e.g. onboarding-intro will be toggled to `true` if it was `false` and the success method was executed:
 
 ```
