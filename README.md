@@ -1,5 +1,14 @@
 # react-native-once
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/react-native-once" rel="nofollow">
+    <img src="https://img.shields.io/npm/v/react-native-once.svg?style=flat-square" alt="version" style="max-width:100%;" />
+  </a>
+  <a href="https://www.npmjs.com/package/react-native-once" rel="nofollow">
+    <img src="http://img.shields.io/npm/l/react-native-once.svg?style=flat-square" alt="license" style="max-width:100%;" />
+  </a>
+</p>
+
 Run code once or multiple times based on user preference. Uses `AsyncStorage` to track if code should be executed. This library is built simply to reduce the complexity introduced into components when running code conditionally based on application and user preferences. e.g.
 
 1. App first open -> show on-boarding experience
@@ -37,7 +46,7 @@ Once.run("real-example", () => Navigation.push("OnBoardingScreen"));
 
 Install via npm:
 ```sh
- npm install react-native-images-collage --save
+ npm install react-native-once --save
 ```
 ## Usage
 
