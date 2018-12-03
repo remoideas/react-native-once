@@ -1,6 +1,6 @@
 # react-native-once
 
-<p align="center">
+<p align="left">
   <a href="https://www.npmjs.com/package/react-native-once" rel="nofollow">
     <img src="https://img.shields.io/npm/v/react-native-once.svg?style=flat-square" alt="version" style="max-width:100%;" />
   </a>
