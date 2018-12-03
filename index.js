@@ -1,7 +1,7 @@
 /**
  * @author Luke Brandon Farrell
- * @description Once methods. Aimed to make running conditional code one or
- * multiple times based on user preference easier.
+ * @description Once methods. Aimed to facilitate running conditional code once
+ * or multiple times based on user preference and application state.
  */
 
 import React, { Component } from "react";
@@ -12,14 +12,14 @@ class Once extends Component {
   /**
    * Runs a function 'once' or based on value.
    *
-   * @param func
-   * @param key
-   * @param error
-   * @param auto
+   * @param {string} key
+   * @param {func} func
+   * @param {func} error
+   * @param {bool} auto
    *
    * @return {Promise<void>}
    */
-  static run = async (func, key, error, auto = true) => {
+  static run = async (key, func, error, auto = true) => {
     let onceValue = null;
 
     try {
@@ -40,9 +40,9 @@ class Once extends Component {
   /**
    * Sets a value to be used by 'once'.
    *
-   * @param key
-   * @param value
-   * @param error
+   * @param {string} key
+   * @param {bool} value
+   * @param {func} error
    *
    * @return {Promise<void>}
    */
@@ -61,9 +61,9 @@ class Once extends Component {
   /**
    * Gets a value from 'once'.
    *
-   * @param key
-   * @param callback
-   * @param error
+   * @param {string} key
+   * @param {func} callback
+   * @param {func} error
    *
    * @return {Promise<void>}
    */
@@ -86,9 +86,18 @@ class Once extends Component {
    */
   componentDidMount() {
     /* Props */
-    const { key, onSuccess, onError, auto } = this.props;
+    const { name, onSuccess, onError, auto } = this.props;
 
-    run(onSuccess, key, onError, auto);
+    Once.run(name, onSuccess, onError, auto);
+  }
+
+  /**
+   * [ Built-in React method. ]
+   *
+   * Allows us to render JSX to the screen
+   */
+  render() {
+    return null;
   }
 }
 
@@ -97,7 +106,7 @@ Once.defaultTypes = {
 };
 
 Once.propTypes = {
-  key: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
   onSuccess: PropTypes.func.isRequired,
   onError: PropTypes.func,
   auto: PropTypes.bool
