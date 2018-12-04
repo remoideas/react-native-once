@@ -8,6 +8,11 @@ import React, { Component } from "react";
 import { AsyncStorage } from "react-native";
 import PropTypes from "prop-types";
 
+// Stores callbacks for the keys.
+let invokes = null;
+// Invoke delay
+let delay = 0;
+
 class Once extends Component {
   /**
    * Runs a function 'once' or based on value.
@@ -19,7 +24,12 @@ class Once extends Component {
    *
    * @return {Promise<void>}
    */
-  static run = async (key, func, error, auto = true) => {
+  static run = async (key, func, error, auto = true, callbacks) => {
+    // Setup invokes if they exist
+    invokes = [];
+    invokes[key] = callbacks;
+
+    // Run function
     let onceValue = null;
 
     try {
@@ -38,6 +48,21 @@ class Once extends Component {
   };
 
   /**
+   * Invokes functions once the key has been set as done.
+   *
+   * @param key
+   */
+  static done = (key) => {
+    if(invokes !== null) {
+      if(key in invokes){
+        invokes[key].map((invoke) => {
+          setTimeout(() => invoke.call(), delay);
+        });
+      }
+    }
+  };
+
+  /**
    * Sets a value to be used by 'once'.
    *
    * @param {string} key
@@ -50,6 +75,9 @@ class Once extends Component {
     try {
       if (Boolean(value)) {
         await AsyncStorage.setItem(key, value ? "true" : "false");
+
+        // Invokes functions once the key has been set.
+        Once.done(key);
       } else {
         await AsyncStorage.removeItem(key);
       }
@@ -86,9 +114,21 @@ class Once extends Component {
    */
   componentDidMount() {
     /* Props */
-    const { name, onSuccess, onError, auto } = this.props;
+    const { name, onSuccess, onError, auto, invokes: callbacks, delay: time } = this.props;
 
-    Once.run(name, onSuccess, onError, auto);
+    // Set our custom delay for invoking
+    delay = time;
+
+    /*
+     * Callbacks needs to be in array (there can be multiple). So if it is not
+     * in an array then we can put it in one.
+     */
+    let modifiedCallbacks = [];
+    if(!Array.isArray(callbacks)){
+      modifiedCallbacks.push(callbacks);
+    }
+
+    Once.run(name, onSuccess, onError, auto, modifiedCallbacks);
   }
 
   /**
@@ -102,14 +142,17 @@ class Once extends Component {
 }
 
 Once.defaultTypes = {
-  auto: true
+  auto: true,
+  delay: 0,
 };
 
 Once.propTypes = {
   name: PropTypes.string.isRequired,
   onSuccess: PropTypes.func.isRequired,
   onError: PropTypes.func,
-  auto: PropTypes.bool
+  auto: PropTypes.bool,
+  invokes: PropTypes.array,
+  delay: PropTypes.number
 };
 
 export { Once };
