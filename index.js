@@ -131,7 +131,7 @@ class Once extends Component {
   invoke(){
     /* Props */
     const { name, onSuccess, onError, auto, invokes: callbacks, delay: time, platform } = this.props;
-
+    console.log("INVOKE");
     // Set our custom delay for invoking
     delay = time;
 
@@ -168,7 +168,7 @@ Once.propTypes = {
   onSuccess: PropTypes.func.isRequired,
   onError: PropTypes.func,
   auto: PropTypes.bool,
-  invokes: PropTypes.array,
+  invokes: PropTypes.oneOfType([PropTypes.array, PropTypes.func]),
   delay: PropTypes.number,
   platform: PropTypes.string,
   execute: PropTypes.bool,
