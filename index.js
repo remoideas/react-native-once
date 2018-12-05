@@ -5,7 +5,7 @@
  */
 
 import React, { Component } from "react";
-import { AsyncStorage } from "react-native";
+import { AsyncStorage, Platform } from "react-native";
 import PropTypes from "prop-types";
 
 // Stores callbacks for the keys.
@@ -24,7 +24,10 @@ class Once extends Component {
    *
    * @return {Promise<void>}
    */
-  static run = async (key, func, error, auto = true, callbacks) => {
+  static run = async (key, func, error, auto = true, callbacks, platform) => {
+    // Option to only run on specific platform
+    if(platform && platform !== Platform.OS) return null;
+
     // Setup invokes if they exist
     invokes = [];
     invokes[key] = callbacks;
@@ -114,7 +117,20 @@ class Once extends Component {
    */
   componentDidMount() {
     /* Props */
-    const { name, onSuccess, onError, auto, invokes: callbacks, delay: time } = this.props;
+    const { name, onSuccess, onError, auto, invokes: callbacks, delay: time, platform, execute } = this.props;
+
+    // If execute is false, don't automatically run
+    if(!execute) return null;
+
+    this.invoke();
+  }
+
+  /**
+   * Ref function. Used to invoke the component directly through reference.
+   */
+  invoke(){
+    /* Props */
+    const { name, onSuccess, onError, auto, invokes: callbacks, delay: time, platform } = this.props;
 
     // Set our custom delay for invoking
     delay = time;
@@ -128,7 +144,7 @@ class Once extends Component {
       modifiedCallbacks.push(callbacks);
     }
 
-    Once.run(name, onSuccess, onError, auto, modifiedCallbacks);
+    Once.run(name, onSuccess, onError, auto, modifiedCallbacks, platform);
   }
 
   /**
@@ -141,9 +157,10 @@ class Once extends Component {
   }
 }
 
-Once.defaultTypes = {
+Once.defaultProps = {
   auto: true,
   delay: 0,
+  execute: true,
 };
 
 Once.propTypes = {
@@ -152,7 +169,9 @@ Once.propTypes = {
   onError: PropTypes.func,
   auto: PropTypes.bool,
   invokes: PropTypes.array,
-  delay: PropTypes.number
+  delay: PropTypes.number,
+  platform: PropTypes.string,
+  execute: PropTypes.bool,
 };
 
 export { Once };

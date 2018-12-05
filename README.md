@@ -26,7 +26,7 @@ try {
 
 if (!introValue) {
   Navigation.push("OnBoardingScreen");
-  await AsyncStorage.setItem("ashleigh-clubintro", "true");
+  await AsyncStorage.setItem("real-example", "true");
 }
 ```
 #### After
