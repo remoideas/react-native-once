@@ -1,6 +1,6 @@
 {
   "name": "react-native-once",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Run code once or multiple time and persist the preference with a declarative API in your React Native applications.",
   "main": "index.js",
   "scripts": {
