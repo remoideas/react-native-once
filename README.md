@@ -19,26 +19,22 @@ Run code once or multiple times based on user preference. Uses `AsyncStorage` to
 let introValue = null;
 
 try {
-  introValue = await AsyncStorage.getItem("real-example");
+  introValue = await AsyncStorage.getItem("on-boarding");
 } catch (error) {
   // The data does not exist.
 }
 
 if (!introValue) {
   Navigation.push("OnBoardingScreen");
-  await AsyncStorage.setItem("real-example", "true");
+  await AsyncStorage.setItem("on-boarding", "true");
 }
 ```
 #### After
 ```
 <Once
-  name="real-example"
+  name="on-boarding"
   onSuccess={() => Navigation.push("OnBoardingScreen")}
 />
-
-// OR
-
-Once.run("real-example", () => Navigation.push("OnBoardingScreen"));
 
 ```
 
@@ -61,7 +57,7 @@ Simply use the exported Once component with a unique key (name) and callbacks to
 
 ```jsx
 <Once
-  name="onboarding-intro"
+  name="on-boarding"
   onSuccess={() => console.log("Show on-boarding screens")}
   onError={(e) => console.log(e)}
 />
@@ -81,20 +77,7 @@ Once.get("onboarding-intro", value => {
 Sets the value of the key:
 ```js
 // Allows you to update the key. Value must be a boolean.
-Once.set("onboarding-intro", value);
-```
-
-Runs a method based on the value of the key. The forth parameter is to denote if the key should automatically be toggled (default true). e.g. onboarding-intro will be toggled to `true` if it was `false` and the success method was executed:
-
-```
-// Allows you to run code based on if the key provided is true.
-// The <Once /> component uses this method under the hood.
-Once.run(
-  "onboarding-intro",
-  () => console.log("Show on-boarding screens")),
-  (e) => console.log(e)),
-  false
-);
+Once.set("onboarding-intro", false);
 ```
 
 
@@ -105,7 +88,10 @@ Once.run(
 | name                | string        | No        | A unique key provided to be used in Async Storage.                                      |
 | onSuccess           | func          | No        | Function executed if the key does not exist or key === true.                            |
 | onError             | func          | Yes       | Function executed if there was an error accessing AsyncStorage.                         |
+| delay               | number        | Yes       | Delay for rendering children, if you choose to render children in the once component.   |                                                        |
 | auto                | bool          | Yes       | Automatically toggle the key to true if the onSuccess function is executed.             |
+| platform            | string        | Yes       | "ios" / "android", should this only run on a specific platform?                         |
+| expire              | number        | Yes       | UNIX Timestamp. Set an expiry for the key.                                                     |
 
 ## Authors
 

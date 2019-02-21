@@ -5,85 +5,25 @@
  */
 
 import React, { Component } from "react";
-import { AsyncStorage, Platform } from "react-native";
+import { View, AsyncStorage, Platform } from "react-native";
 import PropTypes from "prop-types";
 
-// Stores callbacks for the keys.
-let invokes = null;
-// Invoke delay
-let delay = 0;
-
 class Once extends Component {
-  /**
-   * Runs a function 'once' or based on value.
-   *
-   * @param {string} key
-   * @param {func} func
-   * @param {func} error
-   * @param {bool} auto
-   *
-   * @return {Promise<void>}
-   */
-  static run = async (key, func, error, auto = true, callbacks, platform) => {
-    // Option to only run on specific platform
-    if(platform && platform !== Platform.OS) return null;
-
-    // Setup invokes if they exist
-    invokes = [];
-    invokes[key] = callbacks;
-
-    // Run function
-    let onceValue = null;
-
-    try {
-      onceValue = await AsyncStorage.getItem(key);
-    } catch (e) {
-      if (error) error(e);
-    }
-
-    if (!onceValue || onceValue === "false") {
-      func.call();
-
-      if (auto) {
-        await AsyncStorage.setItem(key, "true");
-      }
-    }
-  };
-
-  /**
-   * Invokes functions once the key has been set as done.
-   *
-   * @param key
-   */
-  static done = (key) => {
-    if(invokes !== null) {
-      if(key in invokes){
-        invokes[key].map((invoke) => {
-          setTimeout(() => invoke.call(), delay);
-        });
-      }
-    }
-  };
-
   /**
    * Sets a value to be used by 'once'.
    *
    * @param {string} key
    * @param {bool} value
+   * @param {func} callback
    * @param {func} error
    *
    * @return {Promise<void>}
    */
-  static set = async (key, value, error) => {
+  static set = async (key, value, callback, error) => {
     try {
-      if (Boolean(value)) {
-        await AsyncStorage.setItem(key, value ? "true" : "false");
+      await AsyncStorage.setItem(key, value);
 
-        // Invokes functions once the key has been set.
-        Once.done(key);
-      } else {
-        await AsyncStorage.removeItem(key);
-      }
+      if (callback) callback.call();
     } catch (e) {
       if (error) error(e);
     }
@@ -104,7 +44,7 @@ class Once extends Component {
     try {
       onceValue = await AsyncStorage.getItem(key);
 
-      callback(Boolean(onceValue === "true"));
+      if (callback) callback(onceValue);
     } catch (e) {
       if (error) error(e);
     }
@@ -113,37 +53,109 @@ class Once extends Component {
   /**
    * [ Built-in React method. ]
    *
+   * Setup the component. Executes when the component is created
+   *
+   * @param {object} props
+   *
+   */
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      render: false
+    };
+
+    this.run = this.run.bind(this);
+    this.invoke = this.invoke.bind(this);
+  }
+
+  /**
+   * [ Built-in React method. ]
+   *
    * Executed when the component is mounted to the screen.
    */
   componentDidMount() {
-    /* Props */
-    const { name, onSuccess, onError, auto, invokes: callbacks, delay: time, platform, execute } = this.props;
-
-    // If execute is false, don't automatically run
-    if(!execute) return null;
-
     this.invoke();
+  }
+
+  /**
+   * [ Built-in React method. ]
+   *
+   * Executed when the component is unmounted from the screen
+   */
+  componentWillUnmount() {
+    if (this.delayTimeout) clearTimeout(this.delayTimeout);
+  }
+
+  /**
+   * Runs a function 'once' or based on value.
+   *
+   * @param {string} key
+   * @param {func} func
+   * @param {func} error
+   * @param {string} platform
+   * @param {bool} auto
+   * @param {number} delay
+   * @param {number} expire
+   *
+   * @return {Promise<void>}
+   */
+  async run(key, func, error, platform, auto, delay, expire) {
+    // Option to only run on specific platform
+    if (platform && platform !== Platform.OS) return null;
+
+    // Run function
+    let onceValue = null;
+    let expireTime = null;
+
+    try {
+      onceValue = await AsyncStorage.getItem(key);
+      expireTime = await AsyncStorage.getItem(`${key}-expire`);
+    } catch (e) {
+      if (error) error(e);
+    }
+
+    // Has the expiry date been passed
+    const isExpired = expire ? new Date().valueOf() > expireTime : false;
+
+    if (!onceValue || isExpired) {
+      // Fire callback
+      func.call();
+      // Set Async storage
+      if (auto) {
+        await AsyncStorage.setItem(key, "true");
+
+        // If expire has been set, then set the expire key
+        if (expire) {
+          await AsyncStorage.setItem(`${key}-expire`, expire.toString());
+        }
+      }
+    } else {
+      // Key has already been used, render children, with optional delay
+      this.delayTimeout = setTimeout(() => {
+        this.setState({
+          render: true
+        });
+      }, delay);
+    }
   }
 
   /**
    * Ref function. Used to invoke the component directly through reference.
    */
-  invoke(){
+  invoke() {
     /* Props */
-    const { name, onSuccess, onError, auto, invokes: callbacks, delay: time, platform } = this.props;
-    // Set our custom delay for invoking
-    delay = time;
+    const {
+      name,
+      onSuccess,
+      onError,
+      delay,
+      auto,
+      platform,
+      expire
+    } = this.props;
 
-    /*
-     * Callbacks needs to be in array (there can be multiple). So if it is not
-     * in an array then we can put it in one.
-     */
-    let modifiedCallbacks = [];
-    if(!Array.isArray(callbacks)){
-      modifiedCallbacks.push(callbacks);
-    }
-
-    Once.run(name, onSuccess, onError, auto, modifiedCallbacks, platform);
+    this.run(name, onSuccess, onError, platform, auto, delay, expire);
   }
 
   /**
@@ -152,25 +164,29 @@ class Once extends Component {
    * Allows us to render JSX to the screen
    */
   render() {
-    return null;
+    if (this.state.render) {
+      if (this.props.children) return this.props.children;
+    }
+
+    // We return empty view so we can wrap multiple react-native-once
+    return <View />;
   }
 }
 
 Once.defaultProps = {
-  auto: true,
   delay: 0,
-  execute: true,
+  auto: true
 };
 
 Once.propTypes = {
+  children: PropTypes.any,
   name: PropTypes.string.isRequired,
   onSuccess: PropTypes.func.isRequired,
   onError: PropTypes.func,
-  auto: PropTypes.bool,
-  invokes: PropTypes.oneOfType([PropTypes.array, PropTypes.func]),
   delay: PropTypes.number,
-  platform: PropTypes.string,
-  execute: PropTypes.bool,
+  auto: PropTypes.bool,
+  platform: PropTypes.oneOf(["ios", "android"]),
+  expire: PropTypes.number
 };
 
 export { Once };
