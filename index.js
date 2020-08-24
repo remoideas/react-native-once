@@ -5,7 +5,8 @@
  */
 
 import React, { Component } from "react";
-import { View, AsyncStorage, Platform } from "react-native";
+import { View, Platform } from "react-native";
+import AsyncStorage from '@react-native-community/async-storage';
 import PropTypes from "prop-types";
 
 class Once extends Component {
