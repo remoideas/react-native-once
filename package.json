@@ -27,5 +27,8 @@
   "bugs": {
     "url": "https://github.com/lukebrandonfarrell/react-native-once/issues"
   },
-  "homepage": "https://github.com/lukebrandonfarrell/react-native-once#readme"
+  "homepage": "https://github.com/lukebrandonfarrell/react-native-once#readme",
+  "dependencies": {
+    "@react-native-community/async-storage": "^1.10.0"
+  }
 }
